@@ -19,7 +19,7 @@ BASE_URL = "https://api.sam.gov/opportunities/v2/search"  # Updated endpoint
 
 # App title
 st.title("SAM.gov Opportunities Generator")
-st.write("This app allows you to search for opportunities on SAM.gov and export the results to CSV and Excel files.")
+st.write("This app allows you to search for opportunities on SAM.gov and export the results to Excel files.")
 
 # User inputs
 st.sidebar.header("Search Parameters")
