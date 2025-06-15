@@ -85,15 +85,19 @@ if st.sidebar.button("Search Opportunities"):
         # Exclude unnecessary columns
         exclude_columns = [
             "archiveType", "naicsCodes", "pointOfContact", "description",
-            "organizationType", "additionalInfoLink",
+            "organizationType", "additionalInfoLink", "award.awardee.manual",
             "fullParentPathCode", "noticeId", "typeOfSetAsideDescription"
         ]
         df = df.drop(columns=[col for col in exclude_columns if col in df.columns], errors="ignore")
 
-        # Reorder columns: postedDate, type, baseType, name, followed by the rest
+        # Ensure all values are strings or Excel-compatible
+        df = df.applymap(lambda x: str(x) if isinstance(x, (list, dict)) else x)
+
+        # Reorder columns: postedDate, type, baseType, title, followed by the rest
         priority_columns = ["postedDate", "type", "baseType", "title"]
-        remaining_columns = [col for col in df.columns if col not in priority_columns]
-        ordered_columns = priority_columns + remaining_columns
+        existing_priority_columns = [col for col in priority_columns if col in df.columns]
+        remaining_columns = [col for col in df.columns if col not in existing_priority_columns]
+        ordered_columns = existing_priority_columns + remaining_columns
         df = df[ordered_columns]
 
         # Save the DataFrame to an Excel file with filters and frozen header
