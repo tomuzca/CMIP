@@ -4,6 +4,9 @@ import pandas as pd
 from io import BytesIO
 from dotenv import load_dotenv
 import os
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.worksheet.filters import AutoFilter
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -24,7 +27,7 @@ st.write("This app allows you to search for opportunities on SAM.gov and export 
 st.sidebar.header("Search Parameters")
 posted_from = st.sidebar.date_input("Start Date (postedFrom)", value=None, min_value=None, max_value=None)
 posted_to = st.sidebar.date_input("End Date (postedTo)", value=None, min_value=None, max_value=None)
-limit = st.sidebar.number_input("Results Limit (limit)", min_value=1, max_value=10000, value=100, step=1)
+limit = st.sidebar.number_input("Results Limit (limit)", min_value=1, max_value=1000, value=100, step=1)
 
 # Convert dates to MM/dd/yyyy format
 if posted_from and posted_to:
@@ -38,7 +41,8 @@ else:
 if st.sidebar.button("Search Opportunities"):
     # Search parameters
     params = {
-        "api_key": API_KEY,  # Total Small Business Set-Aside
+        "api_key": API_KEY,
+        "typeOfSetAside": "SBA",  # Total Small Business Set-Aside
         "postedFrom": posted_from_str,
         "postedTo": posted_to_str,
         "limit": limit,  # Number of results per page
@@ -79,10 +83,28 @@ if st.sidebar.button("Search Opportunities"):
         # Convert results to a DataFrame
         df = pd.DataFrame(processed_results)
 
-        # Save the DataFrame to an Excel file in memory
+        # Exclude the "archiveType" column if it exists
+        if "archiveType" in df.columns:
+            df = df.drop(columns=["archiveType", "naicsCodes", "pointOfContact", "description", "organizationType","additionalInfoLink", "award.awardee.manual" ])
+
+        # Save the DataFrame to an Excel file with filters and frozen header
         output = BytesIO()
-        with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name="Opportunities")
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Opportunities"
+
+        # Write the DataFrame to the worksheet
+        for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), start=1):
+            ws.append(row)
+            if r_idx == 1:
+                # Apply filters to the first row
+                ws.auto_filter.ref = ws.dimensions
+
+        # Freeze the first row
+        ws.freeze_panes = "A2"
+
+        # Save the workbook to the BytesIO object
+        wb.save(output)
         output.seek(0)
 
         # Provide a download button for the Excel file
