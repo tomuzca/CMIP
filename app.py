@@ -91,7 +91,7 @@ if st.sidebar.button("Search Opportunities"):
         df = df.drop(columns=[col for col in exclude_columns if col in df.columns], errors="ignore")
 
         # Reorder columns: postedDate, type, baseType, name, followed by the rest
-        priority_columns = ["postedDate", "type", "baseType", "name"]
+        priority_columns = ["postedDate", "type", "baseType", "title"]
         remaining_columns = [col for col in df.columns if col not in priority_columns]
         ordered_columns = priority_columns + remaining_columns
         df = df[ordered_columns]
