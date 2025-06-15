@@ -85,7 +85,7 @@ if st.sidebar.button("Search Opportunities"):
 
         # Exclude the "archiveType" column if it exists
         if "archiveType" in df.columns:
-            df = df.drop(columns=["archiveType", "naicsCodes", "pointOfContact", "description", "organizationType","additionalInfoLink", "award.awardee.manual" ])
+            df = df.drop(columns=["archiveType", "naicsCodes", "pointOfContact", "description", "organizationType","additionalInfoLink", "award.awardee.manual", "fullParentPathCode", "noticeId", "typeOfSetAsideDescription", "pointOfContact", ])
 
         # Save the DataFrame to an Excel file with filters and frozen header
         output = BytesIO()
