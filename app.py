@@ -1,8 +1,7 @@
 import streamlit as st
 import requests
-import csv
 import pandas as pd
-from openpyxl import Workbook
+from io import BytesIO
 from dotenv import load_dotenv
 import os
 
@@ -78,61 +77,26 @@ if st.sidebar.button("Search Opportunities"):
             flatten_dict(opportunity)
             processed_results.append(flattened_opportunity)
 
-        # Export to CSV
-        csv_file = "samgov_opportunities_full.csv"
-        with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
-            fieldnames = set()
-            for result in processed_results:
-                fieldnames.update(result.keys())
-            fieldnames = sorted(fieldnames)  # Sort fields alphabetically
+        # Convert results to a DataFrame
+        df = pd.DataFrame(processed_results)
 
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(processed_results)
+        # Save the DataFrame to an Excel file in memory
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Opportunities")
+        output.seek(0)
 
-        st.success(f"The results have been exported to {csv_file}")
+        # Provide a download button for the Excel file
+        st.success("The data has been successfully processed!")
+        st.download_button(
+            label="Download Excel File",
+            data=output,
+            file_name="samgov_opportunities.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
-        # Convert CSV to Excel
-        xlsx_file = "samgov.xlsx"
-        columns_to_include = [
-            "postedDate",
-            "solicitationNumber",
-            "title",
-            "responseDeadLine",
-            "fullParentPathName",
-            "naicsCode",
-            "placeOfPerformance.state.code",
-            "placeOfPerformance.state.name",
-            "placeOfPerformance.city.name",
-            "placeOfPerformance.city.code",
-            "placeOfPerformance.zip",
-            "placeOfPerformance.streetAddress",
-            "uiLink"
-        ]
-
-        # Read the CSV file
-        df = pd.read_csv(csv_file)
-
-        # Filter the specified columns
-        filtered_df = df[[col for col in columns_to_include if col in df.columns]]
-
-        # Save the filtered DataFrame as an Excel file
-        filtered_df.to_excel(xlsx_file, index=False, engine="openpyxl")
-
-        st.success(f"The file {csv_file} has been successfully converted to {xlsx_file} with the specified columns.")
-
-        # Display download links
-
-
-        with open(xlsx_file, "rb") as f:
-            st.download_button(
-                label="Download Excel",
-                data=f,
-                file_name=xlsx_file,
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        # Display the DataFrame in the app
+        st.dataframe(df)
 
     except requests.exceptions.RequestException as e:
-        st.error(f"Error making the request: {e}")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+        st.error(f"An error occurred while making the request: {e}")
