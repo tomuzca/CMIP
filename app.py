@@ -26,7 +26,7 @@ st.write("This app allows you to search for opportunities on SAM.gov and export 
 st.sidebar.header("Search Parameters")
 posted_from = st.sidebar.date_input("Start Date (postedFrom)", value=None, min_value=None, max_value=None)
 posted_to = st.sidebar.date_input("End Date (postedTo)", value=None, min_value=None, max_value=None)
-limit = st.sidebar.number_input("Results Limit (limit)", min_value=1, max_value=1000, value=100, step=1)
+limit = st.sidebar.number_input("Results Limit (limit)", min_value=1, max_value=1000, value=1000, step=1)
 
 # Convert dates to MM/dd/yyyy format
 if posted_from and posted_to:
