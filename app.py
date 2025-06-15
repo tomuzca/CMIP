@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import os
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.worksheet.filters import AutoFilter
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -83,9 +82,19 @@ if st.sidebar.button("Search Opportunities"):
         # Convert results to a DataFrame
         df = pd.DataFrame(processed_results)
 
-        # Exclude the "archiveType" column if it exists
-        if "archiveType" in df.columns:
-            df = df.drop(columns=["archiveType", "naicsCodes", "pointOfContact", "description", "organizationType","additionalInfoLink", "fullParentPathCode", "noticeId", "typeOfSetAsideDescription", "pointOfContact"])
+        # Exclude unnecessary columns
+        exclude_columns = [
+            "archiveType", "naicsCodes", "pointOfContact", "description",
+            "organizationType", "additionalInfoLink",
+            "fullParentPathCode", "noticeId", "typeOfSetAsideDescription"
+        ]
+        df = df.drop(columns=[col for col in exclude_columns if col in df.columns], errors="ignore")
+
+        # Reorder columns: postedDate, type, baseType, name, followed by the rest
+        priority_columns = ["postedDate", "type", "baseType", "name"]
+        remaining_columns = [col for col in df.columns if col not in priority_columns]
+        ordered_columns = priority_columns + remaining_columns
+        df = df[ordered_columns]
 
         # Save the DataFrame to an Excel file with filters and frozen header
         output = BytesIO()
