@@ -40,8 +40,7 @@ else:
 if st.sidebar.button("Search Opportunities"):
     # Search parameters
     params = {
-        "api_key": API_KEY,
-        "typeOfSetAside": "SBA",  # Total Small Business Set-Aside
+        "api_key": API_KEY,  # Total Small Business Set-Aside
         "postedFrom": posted_from_str,
         "postedTo": posted_to_str,
         "limit": limit,  # Number of results per page
