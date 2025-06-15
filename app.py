@@ -85,7 +85,7 @@ if st.sidebar.button("Search Opportunities"):
         exclude_columns = [
             "archiveType", "naicsCodes", "pointOfContact", "description",
             "organizationType", "additionalInfoLink", "award.awardee.manual",
-            "fullParentPathCode", "noticeId", "typeOfSetAsideDescription"
+            "fullParentPathCode", "noticeId", "typeOfSetAsideDescription", "type"
         ]
         df = df.drop(columns=[col for col in exclude_columns if col in df.columns], errors="ignore")
 
