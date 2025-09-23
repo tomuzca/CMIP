@@ -31,6 +31,8 @@ selected_set_asides = st.sidebar.multiselect(
     "Set-Aside Filter",
     options=['blank', 'SBA', 'SBP', '8A', '8AN', 'HZC', 'HZS', 'SDVOSBC', 'SDVOSBS', 'WOSB', 'WOSBSS', 'EDWOSB', 'EDWOSBSS', 'LAS', 'IEE', 'ISBEE', 'BICiv', 'VSA', 'VSS', 'NONE']
 )
+# New filter for "Due date from"
+due_date_from = st.sidebar.date_input("Due date from", value=None)
 
 # Button to start the search
 if st.sidebar.button("Search Opportunities"):
@@ -108,6 +110,32 @@ if st.sidebar.button("Search Opportunities"):
                     else:
                         st.warning("No 'typeOfSetAside' data found to filter.")
                 # --- End of "typeOfSetAside" filtering logic ---
+
+                # --- New filtering logic for "Due date from" ---
+                if due_date_from:
+                    if 'responseDeadLine' in df.columns:
+                        # Convert both the column and the input date to datetime objects for comparison
+                        df['responseDeadLine_dt'] = pd.to_datetime(df['responseDeadLine'], errors='coerce', utc=True)
+                        
+                        # Convert due_date_from to a UTC timezone-aware timestamp
+                        due_date_from_utc = pd.to_datetime(due_date_from).tz_localize('UTC')
+                        
+                        # Filter out rows where responseDeadLine is NaT (invalid date)
+                        df = df[df['responseDeadLine_dt'].notna()]
+                        
+                        # Apply the filter: keep rows where the response date is >= the selected due date
+                        df = df[df['responseDeadLine_dt'] >= due_date_from_utc]
+                        
+                        # Drop the temporary datetime column
+                        df = df.drop(columns=['responseDeadLine_dt'])
+
+                        if df.empty:
+                            st.warning("No opportunities found with a due date on or after the selected date.")
+                            st.session_state.dataframe = None
+                            st.stop()
+                    else:
+                        st.warning("No 'responseDeadLine' data found to filter.")
+                # --- End of "Due date from" filtering logic ---
                 
                 st.session_state.dataframe = df
                 st.success(f"{len(df)} opportunities found matching the search criteria.")
